@@ -80,6 +80,10 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
+Then open in browser:
+```code
+http://127.0.0.1:5000
+```
 
 ### For Hardware:
 
@@ -182,7 +186,7 @@ python app.py
 ```json
 {
   "status": "success",
-  "message": "Operation completed"
+  "message": "Expense added successfully"
 }
 ```
 
@@ -389,36 +393,50 @@ python script.py -v --format json data.json
 
 If you used AI tools during development, document them here for transparency:
 
-**Tool Used:** [e.g., GitHub Copilot, v0.dev, Cursor, ChatGPT, Claude]
+**Tool Used:** [GitHub Copilot, ChatGPT,Claude]
 
-**Purpose:** [What you used it for]
-- Example: "Generated boilerplate React components"
-- Example: "Debugging assistance for async functions"
-- Example: "Code review and optimization suggestions"
+**Purpose:** 
+AI tools were used as development assistants throughout the project lifecycle for:
 
+- Generating frontend UI components
+- Structuring Flask backend routes
+- Debugging errors and resolving integration issues
+- Designing reminder and parsing logic
+- Improving code organization and documentation
+- 
 **Key Prompts Used:**
 - "Create a REST API endpoint for user authentication"
 - "Debug this async function that's causing race conditions"
 - "Optimize this database query for better performance"
 
-**Percentage of AI-generated code:** 75%
-
+**Percentage of AI-generated code:** 
+Approximately 70–80% of boilerplate and UI logic was AI-assisted.
 **Human Contributions:**
-- Architecture design and planning
-- Custom business logic implementation
-- Integration and testing
-- UI/UX design decisions
+- System design and feature architecture
+- Backend integration and data flow logic
+- Expense tracking functionality
+- JSON data handling
+- Testing, debugging, deployment, and optimization
+- Final refinement and project documentation
 
 *Note: Proper documentation of AI usage demonstrates transparency and earns bonus points in evaluation!*
 
 ---
-
 ## Team Contributions
 
-- [Name 1]: [Specific contributions - e.g., Frontend development, API integration, etc.]
-- [Name 2]: [Specific contributions - e.g., Backend development, Database design, etc.]
-- [Name 3]: [Specific contributions - e.g., UI/UX design, Testing, Documentation, etc.]
+- **FATHIMA HUSNA U**
+  - Project planning and feature design  
+  - Backend structure setup using Flask  
+  - Integration of expense logic and JSON storage  
+  - Testing, debugging, and deployment  
+  - Repository management using Git  
 
+- **HANA ASHIQUE**
+  - Frontend layout design and UI refinement  
+  - Feature enhancement and reminder logic integration  
+  - User experience improvements  
+  - Testing and validation of application flow  
+  - Documentation and submission preparation  
 ---
 
 ## License
