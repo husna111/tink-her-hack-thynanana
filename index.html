@@ -1,0 +1,979 @@
+<div class="tabs">
+    <button class="tab active" onclick="showTab('add',this)">[ ADD ]</button>
+    <button class="tab" onclick="showTab('view',this)">[ VIEW ]</button>
+    <button class="tab" onclick="showTab('stats',this)">[ STATS ]</button>
+    <button class="tab" onclick="showTab('budget',this)">[ BUDGET ]</button>
+    <button class="tab" onclick="showTab('settings',this)">[ SETTINGS ]</button>
+  </div>
+
+  <!-- ADD TAB -->
+  <div id="add" class="tab-pane active">
+    <div class="rem-grid" id="remGrid"></div>
+
+    <div class="upi-box">
+      <div class="upi-title">
+        ⚡ AUTO-IMPORT FROM UPI / SMS <span class="upi-new">AI</span>
+        <button class="upi-btn clip" onclick="pasteClip()">📋 PASTE CLIPBOARD</button>
+      </div>
+      <div style="font-size:6px;color:var(--text3);margin-bottom:8px;line-height:2">GPay · PhonePe · Paytm · BHIM · any bank SMS · paste one or multiple</div>
+      <textarea class="upi-area" id="upiPaste" rows="3" placeholder="Paste UPI/bank message here e.g.&#10;'Paid ₹250 to Swiggy via GPay. UPI Ref: 4291'&#10;'Rs.180 debited from A/c XX4521 to ZOMATO on 28-Feb'"></textarea>
+      <div class="upi-btns">
+        <button class="upi-btn" onclick="parseOne()">⚡ AUTO-FILL FORM</button>
+        <button class="upi-btn secondary" onclick="parseBulk()">📦 BULK IMPORT</button>
+      </div>
+      <div class="upi-preview" id="upiPreview"></div>
+      <div id="bulkOut" style="display:none;margin-top:10px"></div>
+    </div>
+
+    <div class="form-box">
+      <div class="form-title">📝 LOG EXPENSE</div>
+      <div class="grid3">
+        <div class="field"><label>DESCRIPTION</label><input type="text" id="fDesc" placeholder="what did you buy?" maxlength="80"></div>
+        <div class="field"><label>AMOUNT (<span id="fCur">₹</span>)</label><input type="number" id="fAmt" placeholder="0.00" step="0.01" min="0.01"></div>
+        <div class="field"><label>CATEGORY</label>
+          <select id="fCat">
+            <option value="">SELECT...</option>
+            <option value="food">🍕 Food</option>
+            <option value="coffee">☕ Chai / Coffee</option>
+            <option value="textbooks">📚 Textbooks</option>
+            <option value="transport">🚌 Transport</option>
+            <option value="entertainment">🎮 Fun Stuff</option>
+            <option value="supplies">✏️ Supplies</option>
+            <option value="hostel">🏠 Hostel / Bills</option>
+            <option value="health">💊 Health</option>
+            <option value="clothes">👕 Clothes</option>
+            <option value="subscriptions">📱 Subscriptions</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>DATE</label><input type="date" id="fDate"></div>
+        <div class="field"><label>NOTE (OPTIONAL)</label><input type="text" id="fNote" placeholder="extra details..." maxlength="60"></div>
+      </div>
+      <div class="pm-row">
+        <span class="pm-lbl">PAID WITH:</span>
+        <div class="toggle-group">
+          <button class="tog on-cash" id="tog-cash" onclick="setPM('cash')">💵 CASH</button>
+          <button class="tog" id="tog-card" onclick="setPM('card')">💳 CARD</button>
+          <button class="tog" id="tog-upi" onclick="setPM('upi')">📱 UPI</button>
+          <button class="tog" id="tog-other" onclick="setPM('other')">🔄 OTHER</button>
+        </div>
+      </div>
+      <div class="nw-row">
+        <span class="nw-lbl">TYPE:</span>
+        <div class="toggle-group">
+          <button class="tog on-need" id="tog-need" onclick="setNW(true)">✓ NEED</button>
+          <button class="tog" id="tog-want" onclick="setNW(false)">★ WANT</button>
+        </div>
+      </div>
+      <button class="add-btn" onclick="addExpense()">+ ADD EXPENSE</button>
+    </div>
+  </div>
+
+  <!-- VIEW TAB -->
+  <div id="view" class="tab-pane">
+    <div class="filter-bar">
+      <span style="font-size:6px;color:var(--text3)">FILTER:</span>
+      <button class="f-btn active" onclick="setFilter('all',this)">ALL</button>
+      <button class="f-btn" onclick="setFilter('need',this)">NEEDS</button>
+      <button class="f-btn" onclick="setFilter('want',this)">WANTS</button>
+      <button class="f-btn" onclick="setFilter('cash',this)">💵</button>
+      <button class="f-btn" onclick="setFilter('card',this)">💳</button>
+      <button class="f-btn" onclick="setFilter('upi',this)">📱</button>
+      <input class="search-in" type="text" id="searchIn" placeholder="search..." oninput="renderExps()">
+    </div>
+    <div class="exp-list" id="expList">
+      <div class="empty"><span class="empty-icon">📭</span><p>NO EXPENSES YET</p></div>
+    </div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div id="stats" class="tab-pane">
+    <div class="nw-cards">
+      <div class="nw-card needs"><div class="nw-emoji">🧩</div><div class="nw-val" id="stNeeds">--</div><div class="nw-lbl">NEEDS</div></div>
+      <div class="nw-card wants"><div class="nw-emoji">✨</div><div class="nw-val" id="stWants">--</div><div class="nw-lbl">WANTS</div></div>
+    </div>
+    <div class="sec-title">💳 BY PAYMENT METHOD</div>
+    <div class="pm-breakdown" id="pmBreak"></div>
+    <div class="sec-title" style="margin-top:14px">📊 BY CATEGORY</div>
+    <div class="cat-list" id="catList"><div class="empty"><span class="empty-icon">📊</span><p>NO DATA YET</p></div></div>
+  </div>
+
+  <!-- BUDGET TAB -->
+  <div id="budget" class="tab-pane">
+    <div class="box-card">
+      <div class="box-title">🎯 MONTHLY BUDGET</div>
+      <div class="field" style="margin-bottom:14px"><label>AMOUNT (<span id="bCur">₹</span>)</label><input type="number" id="budgetIn" placeholder="5000" step="100" min="1"></div>
+      <button class="save-btn" onclick="saveBudget()">SAVE BUDGET</button>
+    </div>
+    <div class="info-list">
+      <div class="info-item"><span class="info-emoji">📏</span><span>50/30/20 rule: 50% needs · 30% wants · 20% savings. Good baseline for hostel life.</span></div>
+      <div class="info-item"><span class="info-emoji">☕</span><span>Tapri chai = ₹10. CCD chai = ₹120. Same caffeine. Different bank balance.</span></div>
+      <div class="info-item"><span class="info-emoji">📱</span><span>Split every subscription with 2-3 hostel mates. ₹299 becomes ₹75. Do it for everything.</span></div>
+      <div class="info-item"><span class="info-emoji">🚌</span><span>Never solo-Uber under 3km. Rapido or shared auto. Same destination, 60% cheaper.</span></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="settings" class="tab-pane">
+    <div class="api-box">
+      <div class="api-title">🔑 ANTHROPIC API KEY <span class="api-status" id="apiStat">NOT SET</span></div>
+      <div style="font-size:6px;color:var(--text3);margin-bottom:9px;line-height:2.2">Get free at console.anthropic.com → stored locally, never sent anywhere except Anthropic</div>
+      <div class="api-row">
+        <input type="password" id="apiKeyIn" placeholder="sk-ant-...">
+        <button class="api-sav" onclick="saveKey()">SAVE</button>
+        <button class="api-clr" onclick="clearKey()">CLEAR</button>
+      </div>
+    </div>
+    <div class="box-card">
+      <div class="box-title">👤 PROFILE</div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label>NAME</label><input type="text" id="sName"></div>
+        <div class="field"><label>CURRENCY</label>
+          <select id="sCur"><option value="₹">₹ INR</option><option value="$">$ USD</option><option value="€">€ EUR</option><option value="£">£ GBP</option><option value="¥">¥ JPY</option></select>
+        </div>
+        <div class="field"><label>YEAR</label>
+          <select id="sYear"><option value="1st year">1st Year</option><option value="2nd year">2nd Year</option><option value="3rd year">3rd Year</option><option value="4th year">4th Year</option><option value="PG">PG</option><option value="PhD">PhD</option></select>
+        </div>
+        <div class="field"><label>VIBE</label>
+          <select id="sVibe"><option value="engineering">⚙️ Engineering</option><option value="medical">🏥 Medical</option><option value="arts">🎨 Arts</option><option value="bschool">📊 B-School</option><option value="law">⚖️ Law</option><option value="liberal">📚 Liberal</option></select>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveProfile()">SAVE PROFILE</button>
+    </div>
+    <div class="danger-box"><span>⚠️</span><span>DANGER ZONE — irreversible</span><button class="danger-btn" onclick="nukeData()">CLEAR ALL DATA</button></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let curPeriod = 'month', periodOff = 0, activeFilt = 'all';
+let isNeed = true, payMethod = 'cash', curStats = null;
+
+// ═══════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════
+const LS = {
+  g: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  s: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  d: k => localStorage.removeItem(k)
+};
+const getExps    = () => LS.g('brk_exp')  || [];
+const saveExps   = v  => LS.s('brk_exp', v);
+const getProf    = () => LS.g('brk_prof') || {};
+const getKey     = () => localStorage.getItem('brk_key') || '';
+const USE_BACK   = window.location.protocol !== 'file:' && window.location.hostname !== '';
+
+// ═══════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════
+let selVibe = 'engineering';
+document.querySelectorAll('.vibe-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.vibe-btn').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+    selVibe = b.dataset.v;
+  };
+});
+document.querySelector('.vibe-btn').classList.add('selected');
+
+function startApp() {
+  const name   = (document.getElementById('ob-name').value.trim()) || 'Student';
+  const budget = parseFloat(document.getElementById('ob-budget').value) || 5000;
+  const curr   = document.getElementById('ob-cur').value;
+  const year   = document.getElementById('ob-year').value;
+  LS.s('brk_prof', { name, budget, currency: curr, year, vibe: selVibe });
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  boot();
+}
+
+// ═══════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════
+function boot() {
+  const p = getProf();
+  if (!p.name) {
+    document.getElementById('onboarding').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    return;
+  }
+  document.getElementById('fDate').value = today();
+  updateHeader();
+  updateCurLabels();
+  loadSettings();
+  loadStats();
+  renderExps();
+  updateKeyStatus();
+  initRemCards();
+  refreshRoast();
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function today() { return new Date().toISOString().slice(0,10); }
+
+function fmt(n) {
+  const c = getProf().currency || '₹';
+  return c + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+function catIcon(c) {
+  return { food:'🍕', coffee:'☕', textbooks:'📚', transport:'🚌', entertainment:'🎮',
+           supplies:'✏️', hostel:'🏠', health:'💊', clothes:'👕', subscriptions:'📱', other:'📦' }[c] || '📦';
+}
+
+function fmtDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getDate();
+}
+
+function showAlert(msg, type) {
+  const c = document.getElementById('alertBox');
+  c.innerHTML = '<div class="alert alert-' + (type || 'ok') + '">' + (type === 'err' ? '✗ ' : '✓ ') + esc(msg) + '</div>';
+  setTimeout(() => { c.innerHTML = ''; }, 4000);
+}
+
+// ═══════════════════════════════════════════
+// HEADER
+// ═══════════════════════════════════════════
+function updateHeader() {
+  const p = getProf();
+  const now = new Date();
+  const hr = now.getHours();
+  const greet = hr < 12 ? 'GOOD MORNING' : hr < 17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
+  document.getElementById('hGreeting').textContent = greet + ', ' + (p.name || 'STUDENT').toUpperCase() + ' 👋';
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('hDate').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  const dim = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  document.getElementById('hMonthPct').textContent = Math.round(now.getDate() / dim * 100) + '%';
+  const vibeLines = {
+    engineering: '>> ENGINEER MODE: OPTIMISE YOUR SPENDING',
+    medical: '>> DR. BUDGET: PRESCRIBING SAVINGS',
+    arts: '>> ARTISTICALLY BROKE SINCE ENROLLMENT',
+    bschool: '>> MBA IN BEING BROKE // FINTECH VIBES',
+    law: '>> OBJECTION: THAT PURCHASE WAS UNNECESSARY',
+    liberal: '>> LIBERALLY SPENDING YOUR WAY TO ZERO',
+  };
+  document.getElementById('hTagline').textContent = vibeLines[p.vibe] || '>> COLLEGE MONEY TRACKER v4.0';
+}
+
+function updateCurLabels() {
+  const c = getProf().currency || '₹';
+  document.querySelectorAll('#fCur,#bCur').forEach(el => el.textContent = c);
+}
+
+// ═══════════════════════════════════════════
+// PERIOD
+// ═══════════════════════════════════════════
+function setPeriod(p, btn) {
+  curPeriod = p; periodOff = 0;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadStats(); renderExps();
+}
+
+function shiftPeriod(d) { periodOff += d; loadStats(); renderExps(); }
+
+function getPeriodRange() {
+  const now = new Date();
+  let start, end, label;
+  if (curPeriod === 'day') {
+    const d = new Date(now); d.setDate(d.getDate() + periodOff);
+    start = end = d.toISOString().slice(0,10);
+    label = fmtDate(start);
+  } else if (curPeriod === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() + periodOff * 7);
+    const dow = d.getDay();
+    const s = new Date(d); s.setDate(s.getDate() - dow);
+    const e = new Date(s); e.setDate(e.getDate() + 6);
+    start = s.toISOString().slice(0,10);
+    end   = e.toISOString().slice(0,10);
+    label = fmtDate(start) + ' – ' + fmtDate(end);
+  } else if (curPeriod === 'year') {
+    const yr = now.getFullYear() + periodOff;
+    start = yr + '-01-01'; end = yr + '-12-31';
+    label = String(yr);
+  } else {
+    const d = new Date(now.getFullYear(), now.getMonth() + periodOff, 1);
+    const yr = d.getFullYear(), mo = d.getMonth();
+    start = yr + '-' + String(mo+1).padStart(2,'0') + '-01';
+    const last = new Date(yr, mo+1, 0);
+    end = last.toISOString().slice(0,10);
+    label = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][mo] + ' ' + yr;
+  }
+  document.getElementById('periodLabel').textContent = label;
+  return { start, end };
+}
+
+function getPeriodExps() {
+  const { start, end } = getPeriodRange();
+  return getExps().filter(e => e.date >= start && e.date <= end);
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function computeStats() {
+  const p = getProf();
+  const budget = p.budget || 5000;
+  const exps = getPeriodExps();
+  if (!exps.length) {
+    return { total:0, count:0, by_cat:{}, by_pm:{cash:0,card:0,upi:0,other:0},
+             needs:0, wants:0, remaining:budget, status:'safe',
+             daily_avg:0, budget, top_cat:null, top_cat_amt:0,
+             wants_pct:0, days_elapsed: new Date().getDate() };
+  }
+  const total = exps.reduce((s,e) => s + e.amount, 0);
+  const by_cat = {}, by_pm = { cash:0, card:0, upi:0, other:0 };
+  exps.forEach(e => {
+    by_cat[e.category] = (by_cat[e.category] || 0) + e.amount;
+    const pm = e.pay_method || 'cash';
+    by_pm[pm] = (by_pm[pm] || 0) + e.amount;
+  });
+  const needs = exps.filter(e => e.is_necessary).reduce((s,e) => s + e.amount, 0);
+  const wants = total - needs;
+  const remaining = budget - total;
+  const days = new Date().getDate();
+  const status = remaining < 0 ? 'over_budget' : remaining < budget * .2 ? 'warning' : 'safe';
+  const top_cat = Object.entries(by_cat).sort((a,b) => b[1]-a[1])[0]?.[0] || null;
+  const sortedCat = Object.fromEntries(Object.entries(by_cat).sort((a,b) => b[1]-a[1]));
+  return {
+    total: +total.toFixed(2), count: exps.length,
+    by_cat: sortedCat, by_pm,
+    needs: +needs.toFixed(2), wants: +wants.toFixed(2),
+    remaining: +remaining.toFixed(2), status,
+    daily_avg: +(total/days).toFixed(2), budget,
+    top_cat, top_cat_amt: top_cat ? +by_cat[top_cat].toFixed(2) : 0,
+    wants_pct: total > 0 ? +(wants/total*100).toFixed(1) : 0,
+    days_elapsed: days
+  };
+}
+
+function loadStats() {
+  getPeriodRange();
+  const s = computeStats();
+  curStats = s;
+
+  const remEl = document.getElementById('sRemain');
+  remEl.textContent = (s.remaining < 0 ? '-' : '') + fmt(Math.abs(s.remaining));
+  remEl.className = 'stat-val ' + (s.remaining < 0 ? 'danger' : s.remaining < s.budget * .2 ? 'warn' : 'good');
+  document.getElementById('sRemainLbl').textContent = 'of ' + fmt(s.budget) + ' monthly';
+  document.getElementById('sSpent').textContent = fmt(s.total);
+  document.getElementById('sSpentLbl').textContent = s.count + ' txn' + (s.count !== 1 ? 's' : '');
+  document.getElementById('sDaily').textContent = fmt(s.daily_avg);
+  document.getElementById('sProj').textContent = 'proj: ' + fmt(s.daily_avg * 30) + '/mo';
+
+  if (s.top_cat) {
+    document.getElementById('sTopCat').textContent = catIcon(s.top_cat) + ' ' + s.top_cat.toUpperCase();
+    document.getElementById('sTopAmt').textContent = fmt(s.top_cat_amt);
+  } else {
+    document.getElementById('sTopCat').textContent = '—';
+    document.getElementById('sTopAmt').textContent = 'nothing yet';
+  }
+
+  // Bar
+  const pct = s.budget > 0 ? Math.min(s.total / s.budget * 100, 100) : 0;
+  const fill = document.getElementById('barFill');
+  fill.style.width = pct + '%';
+  fill.className = 'bar-fill' + (pct >= 100 ? ' over' : pct >= 80 ? ' warn' : '');
+  document.getElementById('barPct').textContent = Math.round(pct) + '%';
+  document.getElementById('barRight').textContent = fmt(s.total) + ' / ' + fmt(s.budget);
+
+  // Chips
+  buildChips(s);
+
+  // Stats tab
+  document.getElementById('stNeeds').textContent = fmt(s.needs);
+  document.getElementById('stWants').textContent = fmt(s.wants);
+
+  const pmIcons = { cash:'💵', card:'💳', upi:'📱', other:'🔄' };
+  document.getElementById('pmBreak').innerHTML = Object.entries(s.by_pm).map(([pm,amt]) =>
+    '<div class="pm-stat"><div class="pm-icon">' + pmIcons[pm] + '</div><div class="pm-val">' + fmt(amt) + '</div><div class="pm-lbl">' + pm.toUpperCase() + '</div></div>'
+  ).join('');
+
+  const cl = document.getElementById('catList');
+  if (s.count) {
+    cl.innerHTML = Object.entries(s.by_cat).map(([cat,amt]) => {
+      const pct2 = s.total > 0 ? (amt/s.total*100).toFixed(0) : 0;
+      return '<div class="cat-row"><div class="cat-top"><div class="cat-name">' + catIcon(cat) + ' ' + cat.toUpperCase() +
+        '</div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:6px;color:var(--text3)">' + pct2 +
+        '%</span><span class="cat-amt">' + fmt(amt) + '</span></div></div>' +
+        '<div class="cat-bar"><div class="cat-fill" style="width:' + pct2 + '%"></div></div></div>';
+    }).join('');
+  } else {
+    cl.innerHTML = '<div class="empty"><span class="empty-icon">📊</span><p>NO DATA YET</p></div>';
+  }
+}
+
+function buildChips(s) {
+  const chips = [];
+  if (s.status === 'over_budget') chips.push('<span class="chip chip-r">💀 OVER ' + fmt(Math.abs(s.remaining)) + '</span>');
+  else if (s.status === 'warning') chips.push('<span class="chip chip-y">⚡ LOW: ' + fmt(s.remaining) + ' LEFT</span>');
+  else if (s.count > 0) chips.push('<span class="chip chip-g">✓ ON TRACK: ' + fmt(s.remaining) + ' LEFT</span>');
+  if (s.wants_pct > 40) chips.push('<span class="chip chip-y">✨ ' + s.wants_pct + '% ON WANTS</span>');
+  if ((s.by_cat.subscriptions || 0) > s.budget * .08) chips.push('<span class="chip chip-p">📱 SUBS: ' + fmt(s.by_cat.subscriptions || 0) + '</span>');
+  if ((s.by_pm.upi || 0) > 0) chips.push('<span class="chip chip-p">📱 UPI: ' + fmt(s.by_pm.upi || 0) + '</span>');
+  document.getElementById('chipsRow').innerHTML = chips.join('');
+}
+
+// ═══════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════
+function setNW(v) {
+  isNeed = v;
+  document.getElementById('tog-need').className = 'tog' + (v ? ' on-need' : '');
+  document.getElementById('tog-want').className = 'tog' + (!v ? ' on-want' : '');
+}
+
+function setPM(m) {
+  payMethod = m;
+  ['cash','card','upi','other'].forEach(x => {
+    document.getElementById('tog-' + x).className = 'tog' + (x === m ? ' on-' + x : '');
+  });
+}
+
+// ═══════════════════════════════════════════
+// ADD EXPENSE
+// ═══════════════════════════════════════════
+function addExpense() {
+  const desc = document.getElementById('fDesc').value.trim();
+  const amt  = parseFloat(document.getElementById('fAmt').value);
+  const cat  = document.getElementById('fCat').value;
+  const date = document.getElementById('fDate').value || today();
+  const note = document.getElementById('fNote').value.trim();
+  if (!desc) { showAlert('Enter a description', 'err'); return; }
+  if (!amt || amt <= 0) { showAlert('Enter a valid amount', 'err'); return; }
+  if (!cat) { showAlert('Select a category', 'err'); return; }
+  const exps = getExps();
+  const id = exps.length ? Math.max(...exps.map(e => e.id)) + 1 : 1;
+  exps.push({ id, date, description: desc, amount: amt, category: cat,
+               is_necessary: isNeed, pay_method: payMethod, note });
+  saveExps(exps);
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fAmt').value = '';
+  document.getElementById('fCat').value = '';
+  document.getElementById('fNote').value = '';
+  document.getElementById('fDate').value = today();
+  setNW(true); setPM('cash');
+  showAlert('LOGGED! ' + (isNeed ? '' : '(watch those wants 👀)'));
+  loadStats(); renderExps(); refreshRoast();
+}
+
+function deleteExp(id) {
+  if (!confirm('Delete this expense?')) return;
+  saveExps(getExps().filter(e => e.id !== id));
+  showAlert('Deleted');
+  loadStats(); renderExps();
+}
+
+// ═══════════════════════════════════════════
+// RENDER EXPENSES
+// ═══════════════════════════════════════════
+function setFilter(f, btn) {
+  activeFilt = f;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExps();
+}
+
+function renderExps() {
+  const list = document.getElementById('expList');
+  const { start, end } = getPeriodRange();
+  const q = (document.getElementById('searchIn')?.value || '').toLowerCase();
+  let exps = getExps()
+    .filter(e => e.date >= start && e.date <= end)
+    .sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  if (activeFilt === 'need') exps = exps.filter(e => e.is_necessary);
+  else if (activeFilt === 'want') exps = exps.filter(e => !e.is_necessary);
+  else if (['cash','card','upi','other'].includes(activeFilt)) exps = exps.filter(e => (e.pay_method||'cash') === activeFilt);
+  if (q) exps = exps.filter(e => e.description.toLowerCase().includes(q) || e.category.toLowerCase().includes(q));
+  if (!exps.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">📭</span><p>NO EXPENSES FOUND</p></div>';
+    return;
+  }
+  list.innerHTML = exps.map(e => {
+    const pm = e.pay_method || 'cash';
+    return '<div class="exp-row">' +
+      '<div class="exp-icon">' + catIcon(e.category) + '</div>' +
+      '<div><div class="exp-desc">' + esc(e.description) + (e.note ? ' <span style="font-size:6px;color:var(--text3)">· ' + esc(e.note) + '</span>' : '') + '</div>' +
+      '<div class="exp-meta">' + fmtDate(e.date) + ' · ' + e.category + '</div></div>' +
+      '<div class="exp-amt">' + fmt(e.amount) + '</div>' +
+      '<div class="exp-right">' +
+      '<span class="badge ' + (e.is_necessary ? 'b-need' : 'b-want') + '">' + (e.is_necessary ? 'NEED' : 'WANT') + '</span>' +
+      '<span class="badge b-' + pm + '">' + pm.toUpperCase() + '</span>' +
+      '<button class="del-btn" onclick="deleteExp(' + e.id + ')">✕</button></div></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// BUDGET / PROFILE / SETTINGS
+// ═══════════════════════════════════════════
+function saveBudget() {
+  const v = parseFloat(document.getElementById('budgetIn').value);
+  if (!v || v <= 0) { showAlert('Enter a valid budget', 'err'); return; }
+  const p = getProf(); p.budget = v; LS.s('brk_prof', p);
+  showAlert('Budget saved!'); loadStats();
+}
+
+function loadSettings() {
+  const p = getProf();
+  const bi = document.getElementById('budgetIn'); if (bi) bi.value = p.budget || 5000;
+  const sn = document.getElementById('sName'); if (sn) sn.value = p.name || '';
+  const sc = document.getElementById('sCur'); if (sc) sc.value = p.currency || '₹';
+  const sy = document.getElementById('sYear'); if (sy) sy.value = p.year || '1st year';
+  const sv = document.getElementById('sVibe'); if (sv) sv.value = p.vibe || 'engineering';
+}
+
+function saveProfile() {
+  const p = getProf();
+  p.name = document.getElementById('sName').value.trim() || p.name;
+  p.currency = document.getElementById('sCur').value;
+  p.year = document.getElementById('sYear').value;
+  p.vibe = document.getElementById('sVibe').value;
+  LS.s('brk_prof', p);
+  updateCurLabels(); updateHeader();
+  showAlert('Profile saved!');
+}
+
+function saveKey() {
+  const k = document.getElementById('apiKeyIn').value.trim();
+  if (!k) { showAlert('Paste your API key first', 'err'); return; }
+  localStorage.setItem('brk_key', k);
+  document.getElementById('apiKeyIn').value = '';
+  updateKeyStatus();
+  showAlert('API key saved — AI enabled 🤖');
+  initRemCards(); refreshRoast();
+}
+
+function clearKey() { LS.d('brk_key'); updateKeyStatus(); showAlert('Key cleared'); }
+
+function updateKeyStatus() {
+  const el = document.getElementById('apiStat');
+  if (!el) return;
+  if (getKey()) { el.textContent = '✓ SET'; el.className = 'api-status api-ok'; }
+  else { el.textContent = 'NOT SET'; el.className = 'api-status api-no'; }
+}
+
+function nukeData() {
+  if (!confirm('Delete ALL data? This cannot be undone.')) return;
+  ['brk_exp','brk_prof','brk_key'].forEach(k => LS.d(k));
+  location.reload();
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'view') renderExps();
+  else if (name === 'stats') loadStats();
+  else if (name === 'budget' || name === 'settings') loadSettings();
+}
+
+// ═══════════════════════════════════════════
+// AI — unified caller
+// ═══════════════════════════════════════════
+async function callClaude(system, user, maxTok) {
+  maxTok = maxTok || 220;
+  // 1. Flask backend
+  if (USE_BACK) {
+    try {
+      const r = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system, user, max_tokens: maxTok })
+      });
+      if (r.ok) { const d = await r.json(); if (d.success && d.text) return d.text; }
+    } catch {}
+  }
+  // 2. Direct (standalone, needs key)
+  const key = getKey();
+  if (!key) return null;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: maxTok,
+        system,
+        messages: [{ role: 'user', content: user }]
+      })
+    });
+    if (r.ok) { const d = await r.json(); return d.content?.[0]?.text?.trim() || null; }
+  } catch {}
+  return null;
+}
+
+// ═══════════════════════════════════════════
+// REMINDER CARDS — 4 independent AI panels
+// ═══════════════════════════════════════════
+const CARDS = [
+  { id: 'roast',     emoji: '🔥', label: 'SPENDING ROAST',    color: 'var(--pink)'   },
+  { id: 'tip',       emoji: '💡', label: 'HOSTEL HACK',       color: 'var(--purple)' },
+  { id: 'mission',   emoji: '🎯', label: 'WEEKLY MISSION',    color: 'var(--green)'  },
+  { id: 'pulse',     emoji: '📊', label: 'MONEY PULSE',       color: 'var(--cyan)'   },
+];
+
+async function initRemCards() {
+  const grid = document.getElementById('remGrid');
+  if (!grid) return;
+  grid.innerHTML = CARDS.map(c =>
+    '<div class="rem-card" id="rc-' + c.id + '" style="border-color:' + c.color + '">' +
+    '<div class="rem-head" style="color:' + c.color + '">' +
+    '<span>' + c.emoji + ' ' + c.label + '</span>' +
+    '<button class="rem-refresh" onclick="refreshCard(\'' + c.id + '\')" style="border-color:' + c.color + ';color:' + c.color + '">↻</button>' +
+    '</div><div class="rem-body loading" id="rct-' + c.id + '">GENERATING... ▌</div></div>'
+  ).join('');
+  await Promise.all(CARDS.map(c => refreshCard(c.id)));
+}
+
+async function refreshCard(id) {
+  const el = document.getElementById('rct-' + id);
+  if (!el) return;
+  el.className = 'rem-body loading';
+  el.textContent = 'GENERATING... ▌';
+  let text = '';
+  if (id === 'roast')   text = await makeRoast();
+  if (id === 'tip')     text = await makeTip();
+  if (id === 'mission') text = await makeMission();
+  if (id === 'pulse')   text = makePulse();
+  el.className = 'rem-body';
+  el.textContent = text || 'Click ↻ to generate';
+}
+
+// ── ROAST ──
+async function makeRoast() {
+  const s = curStats, p = getProf(), c = p.currency || '₹';
+  const SYS = 'You roast broke Indian college HOSTEL students about money. RULES: never mention cooking/kitchen — no hostels have kitchens. DO mention: canteen, mess food, chai tapri, Swiggy/Zomato, auto-rickshaw sharing, hostel mate splits, recharge plans. 2 sentences MAX. Savage + warm. End with exactly one actionable tip. No generic advice.';
+  const hasData = s && s.count > 0;
+  const USER = hasData
+    ? (p.name || 'Student') + ' is a ' + p.year + ' ' + p.vibe + ' student. Spent ' + c + s.total + ' of ' + c + s.budget + ' (' + s.status + '). Biggest: ' + s.top_cat + ' (' + c + s.top_cat_amt + '). Wants: ' + s.wants_pct + '%. Day ' + s.days_elapsed + ' of month. Roast them specifically.'
+    : 'Welcome roast for ' + (p.name || 'a new') + ', ' + p.year + ' ' + p.vibe + ' student, just started tracking. No data yet. Roast their vibe\'s typical money sins.';
+  const ai = await callClaude(SYS, USER, 200);
+  if (ai) return ai;
+  // Offline bank — vibe-aware, hostel-specific
+  const vibeBank = {
+    engineering: [
+      'Budget has more runtime errors than your last assignment. Biggest bug: ' + (s?.top_cat || 'food') + ' spending. Patch: eat canteen once a day, save ' + c + Math.round((s?.top_cat_amt || 300) * .4) + ' this week.',
+      'Your wallet is in segmentation fault. Pointer to solution: redirect Swiggy budget to mess card, net gain ' + c + Math.round((s?.by_cat?.food || 400) * .5) + '.',
+      'Compiler warning: expenses exceed budget. Fix the ' + (s?.top_cat || 'food') + ' loop first — it\'s O(n) expensive.',
+    ],
+    medical: [
+      'Wallet in the ICU. Prognosis: critical. Prescription: mess thali twice a day, cancel one subscription, reassess in 7 days.',
+      'You\'re saving lives but hemorrhaging money on ' + (s?.top_cat || 'food') + '. Triage your wants list down to zero until month end.',
+      'Clinical finding: ' + (s?.wants_pct || 30) + '% on wants. Treatment plan: 50/30/20 rule, stat. Follow up: end of month.',
+    ],
+    arts: [
+      'Broke is an aesthetic until mess fees bounce. Your ' + (s?.top_cat || 'food') + ' budget is abstract expressionism — chaotic with no clear direction.',
+      'Van Gogh sold one painting his whole life and still spent less than you on ' + (s?.top_cat || 'food') + '. Learn from the legend.',
+      'Your bank balance is declining faster than your idealism. Channel the creativity into a side hustle, not into Swiggy orders.',
+    ],
+    bschool: [
+      'You study NPV and still haven\'t calculated the ROI of tapri chai vs CCD. ' + c + '10 vs ' + c + '120. The math is not hard.',
+      'EBITDA of your month: Expenses Before Income Takes a Drastic Approach. Case study: your ' + (s?.top_cat || 'food') + ' spending.',
+      'Finance bro in training, yet you\'re paying full price for subscriptions instead of splitting with 3 hostel mates. Arbitrage that.',
+    ],
+    law: [
+      'Objection: that ' + (s?.top_cat || 'purchase') + ' expense was entirely unnecessary. Motion to strike from the budget, sustained.',
+      'The prosecution presents ' + c + s?.total + ' in spending. The defence has no case. Verdict: financially reckless. Appeal: eat canteen.',
+      'You know every loophole in the IPC but not the simplest financial law: spend less than you earn.',
+    ],
+    liberal: [
+      'Money is a social construct. Your mess fees are not. Pay them first, deconstruct capitalism second.',
+      'Rich in perspectives, running low on ' + c + '. Your ' + (s?.top_cat || 'spending') + ' habit is the most expensive idea you\'ve had this month.',
+      'Critical analysis of your finances: the system is not the only thing failing you right now. Take some agency.',
+    ],
+  };
+  if (!hasData) return 'Zero expenses logged. Your ' + p.vibe + ' budget will absolutely be stress-tested this month. Log the first thing you spend on — even ' + c + '10 chai.';
+  if (s.status === 'over_budget') return 'OVER BUDGET by ' + c + Math.abs(s.remaining).toFixed(0) + '. Spending freeze. Canteen + transport + medicine only until month ends. Everything else waits.';
+  if (s.status === 'warning') return 'Only ' + c + s.remaining.toFixed(0) + ' left. ' + (30 - s.days_elapsed) + ' days to go. That\'s ' + c + Math.round(s.remaining / Math.max(30 - s.days_elapsed, 1)) + '/day max. Make it work.';
+  const pool = vibeBank[p.vibe || 'engineering'] || vibeBank.engineering;
+  return pool[s.days_elapsed % pool.length];
+}
+
+// ── TIP ──
+async function makeTip() {
+  const s = curStats, p = getProf(), c = p.currency || '₹';
+  const SYS = 'Give ONE money tip for an Indian college HOSTEL student. NEVER suggest cooking — hostels have no kitchens. Reference: mess food, canteen, chai tapri, student ID discounts, shared subscriptions, Swiggy One/Zomato Gold splits, UPI cashback, Rapido over Uber, campus facilities, seniors\' notes. Include real ' + c + ' amounts. 1-2 sentences. Casual. Actionable TODAY.';
+  const USER = s && s.count > 0
+    ? p.year + ' ' + p.vibe + ' student. Top spend: ' + s.top_cat + ' (' + c + s.top_cat_amt + '). ' + s.wants_pct + '% wants. ' + c + s.remaining + ' left.'
+    : 'Opening tip for ' + p.year + ' ' + p.vibe + ' hostel student.';
+  const ai = await callClaude(SYS, USER, 150);
+  if (ai) return ai;
+  // Offline tip bank — 50+ tips, zero cooking
+  const universalTips = [
+    'Swiggy One / Zomato Gold: split the ' + c + '299/month membership with one hostel mate. Both get free delivery. Pays off in 2 orders each.',
+    'Google Pay scratch cards + PhonePe cashback = avg ' + c + '5-15/day. 30 days = ' + c + '150-450 back. Always check which app has the active offer before paying.',
+    'Amazon Prime Student is ' + c + '499/year vs ' + c + '1,499 regular. Switch with your .edu email today — triple discount for the same service.',
+    'Rapido bike taxi is 40-60% cheaper than Uber/Ola for solo trips under 5km. Default to it for anything under 3km.',
+    'Set a daily spend notification in PhonePe/GPay settings. Instant awareness every time you tap Pay. Takes 30 seconds to configure.',
+    'Hostel mess + chai tapri = full day meals for ' + c + '80-120. Swiggy equivalent = ' + c + '300-500. Mess wins 6 days out of 7.',
+    'Share every subscription with 3 hostel mates: ' + c + '199 Netflix becomes ' + c + '50/person. Do this for Spotify, Hotstar, everything.',
+    'Auto-rickshaw negotiation tip: always quote 30% lower than their first price. They accept it 70% of the time.',
+    'Never solo-Uber if you can share. Post in your floor group before booking anything — someone else is always going the same way.',
+    'Campus printing: ' + c + '1-2/page. Outside shop: ' + c + '4-5/page. For 100 pages of notes that\'s ' + c + '200 saved. Use campus.',
+    'UPI daily limit alert: when you\'re ' + c + '200 from your self-set daily limit, you\'ll think twice. Set it in your bank app now.',
+    'Canteen bulk top-up: many college canteens give ' + c + '50 extra on ' + c + '500 load. Always use the meal card, never pay per item.',
+    'End of semester: hostel mates leave behind stationery, chargers, cables, even clothes. Check the common room before buying anything.',
+    'Your student ID gets Spotify Student at ' + c + '59/month (half price). Update your subscription if you\'re paying full rate.',
+    'Notion, Figma, Canva Pro — all free via student programs. Apply once at their education pages. Takes 5 minutes total.',
+  ];
+  const vibeTips = {
+    engineering: [
+      'GitHub Student Dev Pack = free GitHub Pro + ' + c + '200k+ in developer tools. Claim at education.github.com with your college email.',
+      'JetBrains IDEs are fully free for students. Stop using cracked versions — get legit access at jetbrains.com/student.',
+      'NPTEL courses are free and several colleges accept them as electives. Save ' + c + '10,000+ vs paid MOOCs on identical content.',
+    ],
+    medical: [
+      'Every medical textbook you need exists as PDF in Telegram groups. Search "MBBS resources" — Robbins, Harrison, Gray\'s, all free. Save ' + c + '3,000+ per book.',
+      'Hospital canteen = ' + c + '50 meals. Outside hospital = ' + c + '180 meals. Same nutrition, 65% cheaper. Default to canteen during postings.',
+      'Your college library has free Medscape, UpToDate, and clinical database access. Check the institutional login before paying for any medical app.',
+    ],
+    arts: [
+      'Adobe Creative Cloud is free for enrolled students through your college IT department. Email them with your student ID — saves ' + c + '5,000/month.',
+      'Campus art supply swaps happen every semester end when students leave. Watch the notice boards — free materials cycle through regularly.',
+      'Your college digital lab has Wacom tablets, cameras, studio time — all free with booking. Use before spending on equipment.',
+    ],
+    bschool: [
+      'Bloomberg Terminal access is free through your college library. Don\'t pay for finance news subscriptions your institution already covers.',
+      'Every B-school recruiter event has free food. Mark all of them regardless of interest. Network + dinner = optimal resource allocation.',
+      'Case competition prize money is real. One win = 2-3 months of expenses. Your skills are literally monetisable — enter one this month.',
+    ],
+    law: [
+      'SCC Online + Manupatra = free via your college library institutional login. Never pay for case law. That\'s ' + c + '3,000/month saved.',
+      'Every senior has complete bare acts, commentaries, and PYQs. Ask in your batch group before buying any legal text — they always share.',
+      'Moot court travel allowance + accommodation is funded by most colleges. Enter competitions — it\'s paid travel on the college\'s tab.',
+    ],
+    liberal: [
+      'Your campus library card unlocks: JSTOR, Project Gutenberg, digital magazines, e-book databases worth ' + c + '3,000/month. Use everything.',
+      'Every campus fest, cultural show, and seminar = free food + free entertainment. Mark every single one. This is non-negotiable.',
+      'Your professor\'s research project often has paid RA positions. Email 3 profs this week — most don\'t advertise them.',
+    ],
+  };
+  const vPool = vibeTips[p.vibe || 'engineering'] || vibeTips.engineering;
+  const all = [...vPool, ...universalTips];
+  return all[(new Date().getDate() + (s?.count || 0)) % all.length];
+}
+
+// ── MISSION ──
+async function makeMission() {
+  const s = curStats, p = getProf(), c = p.currency || '₹';
+  const week = Math.min(4, Math.ceil(new Date().getDate() / 7));
+  const SYS = 'Generate ONE weekly money challenge for an Indian college HOSTEL student. Format: "CHALLENGE: [NAME] [emoji]" on first line, then 2 sentences: what to do + what you\'ll save. Use real ' + c + ' amounts. No cooking. Hostel-specific. Fun and achievable in 7 days.';
+  const USER = p.vibe + ' student, spending most on ' + (s?.top_cat || 'food') + ', week ' + week + ' of month. Make it specific and doable.';
+  const ai = await callClaude(SYS, USER, 130);
+  if (ai) return ai;
+  // Offline challenge bank
+  const missions = [
+    'CHALLENGE: NO SOLO DELIVERY WEEK 🚫\nZero individual Swiggy/Zomato — only group orders or canteen. Split everything or skip it. Target: save ' + c + Math.round((s?.by_cat?.food || 400) * .5) + ' this week.',
+    'CHALLENGE: CASHBACK HUNTER 💰\nEvery payment this week: check which UPI app has the active offer first, then pay. Log total cashback. Target: ' + c + '100+ back in 7 days.',
+    'CHALLENGE: SPLIT EVERYTHING 🤝\nNo solo payments this week. Every auto, snack, order — split with at least one person. See how far ' + c + Math.round((s?.budget || 3000) / 4) + ' stretches with teamwork.',
+    'CHALLENGE: CANTEEN LOYALTY WEEK 🍱\nTwo meals/day from hostel mess or campus canteen. No outside food except one cheat meal. Save ' + c + Math.round((s?.by_cat?.food || 500) * .4) + ' estimated.',
+    'CHALLENGE: STUDENT DISCOUNT SWEEP 🎓\nFind and claim 3 student discounts you weren\'t using: GitHub Education, Adobe, Amazon Prime, Spotify, Notion. Annual saving once done: ' + c + '8,000+.',
+    'CHALLENGE: THE ' + c + '150 DAY 💯\nPick one day: spend under ' + c + '150 total. Mess breakfast + canteen lunch + tapri chai + mess dinner. One day. You can do it.',
+    'CHALLENGE: SUBSCRIPTION AUDIT ✂️\nList every recurring charge this month. Cancel any not used in the last 10 days. Goal: cut at least ' + c + '150 in zombie subscriptions.',
+    'CHALLENGE: TAPRI ONLY CHAI WEEK ☕\nAll chai/coffee from tapri (' + c + '10) not cafe (' + c + '120+). Even if friends go elsewhere. Seven days. Save ' + c + '700.',
+  ];
+  const vibeOff = ['engineering','medical','arts','bschool','law','liberal'].indexOf(p.vibe || 'engineering');
+  return missions[(week + vibeOff) % missions.length];
+}
+
+// ── PULSE (data-driven, no AI tokens) ──
+function makePulse() {
+  const s = curStats, p = getProf(), c = p.currency || '₹';
+  const now = new Date(), day = now.getDate();
+  const dim = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const dLeft = dim - day;
+  const dailyLeft = s ? Math.round(s.remaining / Math.max(dLeft, 1)) : 0;
+  if (!s || s.count === 0) {
+    const starters = [
+      '📊 Nothing logged yet. Every untracked ' + c + ' is a ' + c + ' that vanished. Log the next thing you spend — even ' + c + '10 chai counts.',
+      '👋 Budget set at ' + c + (s?.budget || p.budget || 5000) + '. First expense = first step to knowing where your money actually goes.',
+      '🌱 Zero transactions. Either you\'re incredibly frugal or you forgot to log. Either way, start now.',
+    ];
+    return starters[day % starters.length];
+  }
+  if (s.status === 'over_budget') return '🚨 OVER BY ' + c + Math.abs(s.remaining).toFixed(0) + '. ' + dLeft + ' days left. Canteen + transport + medicine ONLY. Everything else waits for next month.';
+  if (s.status === 'warning') return '⚠️ ' + c + s.remaining.toFixed(0) + ' left with ' + dLeft + ' days to go. Daily limit: ' + c + dailyLeft + '. One skipped delivery = one day\'s budget saved.';
+  if (dLeft <= 4 && s.remaining > 0) return '🏁 Last ' + dLeft + ' days. ' + c + s.remaining.toFixed(0) + ' left = ' + c + dailyLeft + '/day. Classic hostel trap: "I survived, I\'ll treat myself." Don\'t.';
+  if (s.wants_pct > 50) return '✨ ' + s.wants_pct + '% on wants. Target: under 30%. You\'re ' + c + Math.round(s.wants - s.budget * .3) + ' over the want limit. Cut one category this week.';
+  if ((s.by_cat.subscriptions || 0) > s.budget * .08) return '📱 Subscriptions = ' + c + (s.by_cat.subscriptions || 0).toFixed(0) + ' (' + Math.round((s.by_cat.subscriptions || 0) / s.budget * 100) + '% of budget). Split every one with hostel mates. Instant 50-75% cut.';
+  if (day <= 7) return '📅 Week 1. ' + c + s.total.toFixed(0) + ' spent (' + Math.round(s.total / s.budget * 100) + '% of budget). ' + (s.total > s.budget / 4 ? '⚠️ Slightly fast — ease up.' : '✅ Good pace — keep it up.');
+  const projected = s.daily_avg * 30;
+  if (projected > s.budget) return '📈 At current pace (' + c + s.daily_avg + '/day) you\'ll overspend by ' + c + Math.round(projected - s.budget) + '. Cut ' + c + Math.round((projected - s.budget) / Math.max(dLeft, 1)) + '/day from now.';
+  const saves = [
+    '✅ On track! ' + c + s.remaining.toFixed(0) + ' left, ' + dLeft + ' days. Daily limit: ' + c + dailyLeft + '. At this pace you save ' + c + Math.round(s.budget - projected) + ' this month.',
+    '💚 ' + Math.round(s.total / s.budget * 100) + '% budget used on day ' + day + '. Perfectly paced. Daily avg: ' + c + s.daily_avg + '.',
+    '🎯 ' + s.count + ' transactions tracked. Needs: ' + c + s.needs.toFixed(0) + ' · Wants: ' + c + s.wants.toFixed(0) + '. Ratio: ' + (100 - Math.round(s.wants_pct)) + '/' + Math.round(s.wants_pct) + '. ' + (s.wants_pct < 35 ? 'Nailing it ✅' : 'Getting there 📈'),
+  ];
+  return saves[day % saves.length];
+}
+
+// ── ROAST (advisor bar) ──
+async function refreshRoast() {
+  const btn = document.getElementById('roastBtn');
+  const txt = document.getElementById('roastText');
+  txt.className = 'loading'; txt.textContent = 'ANALYZING... ▌';
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  const result = await makeRoast();
+  txt.className = ''; txt.textContent = result;
+  if (btn) { btn.disabled = false; btn.textContent = '↻'; }
+}
+
+// ═══════════════════════════════════════════
+// UPI AUTO-IMPORT
+// ═══════════════════════════════════════════
+async function pasteClip() {
+  try {
+    const t = await navigator.clipboard.readText();
+    if (t) { document.getElementById('upiPaste').value = t; showAlert('Pasted from clipboard!'); }
+  } catch { showAlert('Allow clipboard permission in browser settings, then try again', 'err'); }
+}
+
+async function smartParse(rawText) {
+  // AI parse
+  const SYS = 'Extract payment info from a UPI/SMS/bank message. Return ONLY valid JSON with keys: amount (number), merchant (string), date (YYYY-MM-DD or null), category (food|coffee|transport|entertainment|subscriptions|health|clothes|textbooks|other). No extra text.';
+  const ai = await callClaude(SYS, 'Parse: "' + rawText + '"', 120);
+  if (ai) {
+    try {
+      const clean = ai.replace(/```json/g,'').replace(/```/g,'').trim();
+      const p = JSON.parse(clean);
+      if (p.amount) return p;
+    } catch {}
+  }
+  // Regex fallback
+  const aRx1 = rawText.match(/(?:rs|inr|₹)[.\s]*([\d,]+(?:\.\d{1,2})?)/i);
+  const aRx2 = rawText.match(/([\d,]+(?:\.\d{1,2})?)\s*(?:rs|inr|₹)/i);
+  const amount = aRx1 ? parseFloat(aRx1[1].replace(/,/g,'')) : (aRx2 ? parseFloat(aRx2[1].replace(/,/g,'')) : null);
+
+  const BRANDS = { swiggy:'food', zomato:'food', mcdonalds:'food', kfc:'food', dominos:'food',
+    starbucks:'coffee', 'cafe coffee day':'coffee', ccd:'coffee',
+    ola:'transport', uber:'transport', rapido:'transport', irctc:'transport',
+    netflix:'subscriptions', spotify:'subscriptions', hotstar:'subscriptions', youtube:'subscriptions',
+    amazon:'other', flipkart:'other', myntra:'clothes', bigbasket:'food', blinkit:'food', zepto:'food' };
+  const low = rawText.toLowerCase();
+  let merchant = null, category = 'other';
+  for (const [nm, cat] of Object.entries(BRANDS)) {
+    if (low.includes(nm)) { merchant = nm.charAt(0).toUpperCase() + nm.slice(1); category = cat; break; }
+  }
+  if (!merchant) {
+    const m = rawText.match(/(?:to|paid to|payment to)\s+([A-Za-z0-9 ]+?)(?:\s+(?:via|on|upi|ref)|$)/i);
+    if (m) merchant = m[1].trim();
+  }
+  const dRx = rawText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  let date = null;
+  if (dRx) {
+    const [,dd,mm,yy] = dRx;
+    const yr = yy.length === 2 ? '20' + yy : yy;
+    date = yr + '-' + mm.padStart(2,'0') + '-' + dd.padStart(2,'0');
+  }
+  return amount ? { amount, merchant, date, category } : null;
+}
+
+async function parseOne() {
+  const text = document.getElementById('upiPaste').value.trim();
+  if (!text) { showAlert('Paste a message first', 'err'); return; }
+  const prev = document.getElementById('upiPreview');
+  prev.style.display = 'block';
+  prev.style.borderColor = 'var(--lav)';
+  prev.style.color = 'var(--text3)';
+  prev.textContent = '⚡ PARSING...';
+  // Try backend route first
+  let parsed = null;
+  if (USE_BACK) {
+    try {
+      const r = await fetch('/api/ai/parse-upi', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text}) });
+      if (r.ok) { const d = await r.json(); if (d.success) parsed = d.parsed; }
+    } catch {}
+  }
+  if (!parsed) parsed = await smartParse(text);
+  if (parsed && parsed.amount) {
+    document.getElementById('fAmt').value = parsed.amount;
+    if (parsed.merchant) document.getElementById('fDesc').value = parsed.merchant;
+    if (parsed.date) document.getElementById('fDate').value = parsed.date;
+    if (parsed.category) document.getElementById('fCat').value = parsed.category;
+    setPM('upi');
+    prev.style.borderColor = 'var(--green)';
+    prev.style.color = 'var(--green)';
+    prev.textContent = '✓ Found: ' + fmt(parsed.amount) + ' · ' + (parsed.merchant || '?') + ' · ' + (parsed.date || 'today') + ' — review form below ↓';
+    document.getElementById('upiPaste').value = '';
+  } else {
+    prev.style.borderColor = 'var(--red)';
+    prev.style.color = 'var(--red)';
+    prev.textContent = '✗ Could not parse — fill form manually or try a clearer message';
+  }
+}
+
+async function parseBulk() {
+  const text = document.getElementById('upiPaste').value.trim();
+  if (!text) { showAlert('Paste messages first', 'err'); return; }
+  const out = document.getElementById('bulkOut');
+  out.style.display = 'block';
+  out.innerHTML = '<div style="font-size:7px;color:var(--text3)">⚡ PARSING...</div>';
+  const chunks = text.split(/\n\s*\n/).map(s => s.trim()).filter(s => s.length > 8);
+  const results = [];
+  for (const chunk of chunks) {
+    const p = await smartParse(chunk);
+    if (p && p.amount) results.push({ ...p, raw: chunk });
+  }
+  if (!results.length) {
+    out.innerHTML = '<div style="font-size:8px;color:var(--red)">✗ No transactions found. Make sure messages contain amounts like ₹250 or Rs.180.</div>';
+    return;
+  }
+  window._bulk = results;
+  out.innerHTML = '<div style="font-size:8px;color:var(--green);margin-bottom:9px">✓ Found ' + results.length + ' transaction(s) — select to import:</div>' +
+    results.map((r, i) =>
+      '<div style="display:flex;align-items:center;gap:8px;padding:7px;background:var(--bg2);border:1px solid var(--border);margin-bottom:5px">' +
+      '<input type="checkbox" id="bc-' + i + '" checked style="accent-color:var(--pink);width:13px;height:13px">' +
+      '<div style="flex:1;font-size:7px;color:var(--text2)"><b style="color:var(--pink)">' + fmt(r.amount) + '</b> · ' + (r.merchant || '?') + ' · ' + (r.date || 'today') + '</div>' +
+      '<select id="bcat-' + i + '" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:\'Press Start 2P\',monospace;font-size:6px;padding:3px">' +
+      ['food','coffee','textbooks','transport','entertainment','hostel','health','clothes','subscriptions','other'].map(cat =>
+        '<option value="' + cat + '"' + ((r.category || 'other') === cat ? ' selected' : '') + '>' + cat + '</option>'
+      ).join('') + '</select></div>'
+    ).join('') +
+    '<button onclick="doBulk()" style="width:100%;padding:9px;background:var(--green);border:none;color:#fff;font-family:\'Press Start 2P\',monospace;font-size:7px;cursor:pointer;margin-top:6px">✓ IMPORT SELECTED</button>';
+}
+
+function doBulk() {
+  const results = window._bulk || [];
+  const exps = getExps();
+  let nextId = exps.length ? Math.max(...exps.map(e => e.id)) + 1 : 1;
+  let count = 0;
+  results.forEach((r, i) => {
+    const cb = document.getElementById('bc-' + i);
+    const cat = document.getElementById('bcat-' + i)?.value || r.category || 'other';
+    if (cb && cb.checked && r.amount) {
+      exps.push({ id: nextId++, date: r.date || today(), description: r.merchant || 'UPI Payment',
+                  amount: r.amount, category: cat, is_necessary: true, pay_method: 'upi', note: 'auto-imported' });
+      count++;
+    }
+  });
+  saveExps(exps);
+  document.getElementById('bulkOut').innerHTML = '<div style="font-size:8px;color:var(--green)">✓ Imported ' + count + ' transaction(s)! Check VIEW tab.</div>';
+  document.getElementById('upiPaste').value = '';
+  loadStats(); renderExps(); refreshRoast();
+  showAlert(count + ' transaction(s) imported!');
+}
+</script>
+</body>
+</html>
