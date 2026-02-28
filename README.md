@@ -2,15 +2,15 @@
   <img src="./img.png" alt="Project Banner" width="100%">
 </p>
 
-# [Project Name] 🎯
+# ExpenseTracker 🎯
 
 ## Basic Details
 
-### Team Name: [Name]
+### Team Name: Thynanana
 
 ### Team Members
-- Member 1: [Name] - [College]
-- Member 2: [Name] - [College]
+- Member 1: FATHIMA HUSNA U - TKM COLLEGE OF ENGINEERING
+- Member 2: HANA ASHIQUE - TKM COLLEGE OF ENGINEERING
 
 ### Hosted Project Link
 [mention your project hosted link here]
@@ -386,7 +386,7 @@ If you used AI tools during development, document them here for transparency:
 - "Debug this async function that's causing race conditions"
 - "Optimize this database query for better performance"
 
-**Percentage of AI-generated code:** [Approximately X%]
+**Percentage of AI-generated code:** 75%
 
 **Human Contributions:**
 - Architecture design and planning
