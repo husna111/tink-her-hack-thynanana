@@ -16,13 +16,27 @@
 [mention your project hosted link here]
 
 ### Project Description
-[2-3 lines about what your project does]
+ExpenseTracker is a smart and student-friendly web application designed to help college students manage their daily expenses effortlessly.  
+
+With a clean interface and reminder functionality, users can record expenses, categorize spending, and stay financially organized. The system uses a lightweight Flask backend and JSON-based storage to ensure simplicity, speed, and reliability.
 
 ### The Problem statement
-[What problem are you solving?]
+College students often struggle with managing daily expenses due to the absence of structured tracking tools. This results in overspending, poor budgeting habits, and financial stress.
 
+There is a need for a simple, accessible, and effective expense tracking system tailored specifically for students.
+
+--
 ### The Solution
-[How are you solving it?]
+
+We developed a Flask-based web application that:
+
+- Allows users to add and manage daily expenses  
+- Stores data efficiently using JSON  
+- Categorizes expenses for better tracking  
+- Includes reminder functionality to promote budgeting discipline  
+- Provides a simple and user-friendly interface  
+
+This solution helps students stay financially aware and organized with minimal effort.
 
 ---
 
@@ -31,25 +45,23 @@
 ### Technologies/Components Used
 
 **For Software:**
-- Languages used: [e.g., JavaScript, Python, Java]
-- Frameworks used: [e.g., React, Django, Spring Boot]
-- Libraries used: [e.g., axios, pandas, JUnit]
-- Tools used: [e.g., VS Code, Git, Docker]
-
+- Languages used: Python, HTML, CSS  
+- Frameworks used: Flask  
+- Libraries used: JSON (built-in Python library)  
+- Tools used: VS Code, Git, GitHub
+- 
 **For Hardware:**
-- Main components: [List main components]
-- Specifications: [Technical specifications]
-- Tools required: [List tools needed]
-
+Not applicable (Software-only project)
 ---
 
 ## Features
 
 List the key features of your project:
-- Feature 1: [Description]
-- Feature 2: [Description]
-- Feature 3: [Description]
-- Feature 4: [Description]
+- Add new expenses with title, category, and amount  
+- View recorded expenses in structured format  
+- Store expense data in JSON file  
+- Reminder functionality for better budgeting  
+- Simple and responsive user interface  
 
 ---
 
@@ -59,12 +71,14 @@ List the key features of your project:
 
 #### Installation
 ```bash
-[Installation commands - e.g., npm install, pip install -r requirements.txt]
+git clone https://github.com/yourusername/your-repo-name.git
+cd your-repo-name
+pip install -r requirements.txt
 ```
 
 #### Run
 ```bash
-[Run commands - e.g., npm start, python app.py]
+python app.py
 ```
 
 ### For Hardware:
@@ -137,16 +151,16 @@ List the key features of your project:
 
 #### API Documentation
 
-**Base URL:** `https://api.yourproject.com`
+**Base URL:** `http://127.0.0.1:5000`
 
 ##### Endpoints
 
 **GET /api/endpoint**
-- **Description:** [What it does]
+- **Description:** loads homepage
 - **Parameters:**
   - `param1` (string): [Description]
   - `param2` (integer): [Description]
-- **Response:**
+- **Response:** html page
 ```json
 {
   "status": "success",
@@ -154,13 +168,14 @@ List the key features of your project:
 }
 ```
 
-**POST /api/endpoint**
-- **Description:** [What it does]
+**POST /api/endpoint** 
+- **Description:** adds a new expense
 - **Request Body:**
 ```json
 {
-  "field1": "value1",
-  "field2": "value2"
+  "title": "Food",
+  "amount": 150,
+  "category": "Daily"
 }
 ```
 - **Response:**
